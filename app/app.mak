@@ -10,7 +10,8 @@ $(APP_DIR)/soft_timer.c \
 $(APP_DIR)/shell.c \
 $(APP_DIR)/shell_if_usb.c \
 $(APP_DIR)/misc.c \
-$(APP_DIR)/stepper.c
+$(APP_DIR)/stepper.c \
+$(APP_DIR)/motion_demo.c
 
 
 C_SOURCES += $(APP_C_SOURCES)

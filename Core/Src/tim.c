@@ -22,7 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 #define TIM_CLK           1000000
-#define TARGET_FREQ       200
+#define TARGET_FREQ       100           // 100 steps per sec. 400 steps per one rev. so pretty slow
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;

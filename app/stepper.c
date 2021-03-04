@@ -12,6 +12,7 @@ tim_update_handler(uint32_t e)
   HAL_TIM_Base_Stop_IT(&htim1);
   //HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
   _state = stepper_state_idle;
+  event_set(1 << DISPATCH_EVENT_STEPPER_COMPLETE);
 }
 
 //

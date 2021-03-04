@@ -7,6 +7,7 @@
 #include "shell.h"
 #include "misc.h"
 #include "stepper.h"
+#include "motion_demo.h"
 
 void
 app_init(void)
@@ -23,6 +24,8 @@ app_init(void)
   stepper_init();
 
   __enable_irq();
+
+  motion_demo_init();
 }
 
 void
