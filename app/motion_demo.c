@@ -11,10 +11,12 @@
 
 typedef enum
 {
-  motion_demo_state_idle,
+  motion_demo_state_wait1,
   motion_demo_state_fwd,
-  motion_demo_state_wait,
+  motion_demo_state_wait2,
   motion_demo_state_bwd,
+  motion_demo_state_wait3,
+  motion_demo_state_fwd_bwd,
 } motion_demo_state_t;
 
 typedef enum
@@ -57,6 +59,44 @@ static uint8_t    _bwd_rotate[] =
   129,
 };
 
+static int8_t _fwd_bwd_test[] =
+{
+  -30,
+   30,
+   30,
+  -30,
+
+  -40,
+   40,
+   40,
+  -40,
+
+  -50,
+   50,
+   50,
+  -50,
+
+  -60,
+   60,
+   60,
+  -60,
+
+  -70,
+   70,
+   70,
+  -70,
+
+  -80,
+   80,
+   80,
+  -80,
+
+  -90,
+   90,
+   90,
+  -90
+};
+
 static SoftTimerElem          _tmr;
 static motion_demo_state_t    _state;
 static uint32_t               _current_ndx;
@@ -74,6 +114,22 @@ execute_step(void)
     stepper_step(false, _bwd_rotate[_current_ndx]);
     break;
 
+  case motion_demo_state_fwd_bwd:
+    {
+      int16_t step = _fwd_bwd_test[_current_ndx];
+
+      if(step < 0)
+      {
+        step *= -1;
+        stepper_step(false, (uint8_t)(step));
+      }
+      else
+      {
+        stepper_step(true, (uint8_t)(step));
+      }
+    }
+    break;
+
   default:
     break;
   }
@@ -86,7 +142,7 @@ enter_state(motion_demo_state_t new_state)
 
   switch(_state)
   {
-  case motion_demo_state_idle:
+  case motion_demo_state_wait1:
     mainloop_timer_schedule(&_tmr, IDLE_TIME);
     break;
 
@@ -95,11 +151,20 @@ enter_state(motion_demo_state_t new_state)
     execute_step();
     break;
 
-  case motion_demo_state_wait:
+  case motion_demo_state_wait2:
     mainloop_timer_schedule(&_tmr, BWD_WAIT_TIME);
     break;
 
   case motion_demo_state_bwd:
+    _current_ndx = 0;
+    execute_step();
+    break;
+
+  case motion_demo_state_wait3:
+    mainloop_timer_schedule(&_tmr, BWD_WAIT_TIME);
+    break;
+
+  case motion_demo_state_fwd_bwd:
     _current_ndx = 0;
     execute_step();
     break;
@@ -111,7 +176,7 @@ motion_demo_event_handler(motion_demo_event_t e)
 {
   switch(_state)
   {
-  case motion_demo_state_idle:
+  case motion_demo_state_wait1:
     if(e == motion_demo_event_timeout)
     {
       enter_state(motion_demo_state_fwd);
@@ -136,12 +201,12 @@ motion_demo_event_handler(motion_demo_event_t e)
       }
       else
       {
-        enter_state(motion_demo_state_wait);
+        enter_state(motion_demo_state_wait2);
       }
     }
     break;
 
-  case motion_demo_state_wait:
+  case motion_demo_state_wait2:
     if(e == motion_demo_event_timeout)
     {
       enter_state(motion_demo_state_bwd);
@@ -166,7 +231,37 @@ motion_demo_event_handler(motion_demo_event_t e)
       }
       else
       {
-        enter_state(motion_demo_state_idle);
+        enter_state(motion_demo_state_wait3);
+      }
+    }
+    break;
+
+  case motion_demo_state_wait3:
+    if(e == motion_demo_event_timeout)
+    {
+      enter_state(motion_demo_state_fwd_bwd);
+    }
+    else if(e == motion_demo_event_step_complete)
+    {
+      // impossible. BUG if occurs
+    }
+    break;
+
+  case motion_demo_state_fwd_bwd:
+    if(e == motion_demo_event_timeout)
+    {
+      // impossible. BUG if occurs
+    }
+    else if(e == motion_demo_event_step_complete)
+    {
+      _current_ndx++;
+      if(_current_ndx < sizeof(_fwd_bwd_test))
+      {
+        execute_step();
+      }
+      else
+      {
+        enter_state(motion_demo_state_wait1);
       }
     }
     break;
@@ -193,5 +288,5 @@ motion_demo_init(void)
 
   event_register_handler(stepper_complete_handler, DISPATCH_EVENT_STEPPER_COMPLETE);
 
-  enter_state(motion_demo_state_idle);
+  enter_state(motion_demo_state_wait1);
 }
